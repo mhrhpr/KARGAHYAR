@@ -8,7 +8,7 @@ type Project={id:string;name:string;project_type:string;status:string;progress:n
 
 export default function ProjectHome(){
   const {id}=useLocalSearchParams<{id:string}>(); const [project,setProject]=useState<Project|null>(null);
-  const [workers,setWorkers]=useState(0); const [contractors,setContractors]=useState(0);
+  const [workers,setWorkers]=useState(0); const [contractors,setContractors]=useState(0); const [paid,setPaid]=useState(0);
   const [cost,setCost]=useState(0);
   useEffect(()=>{if(!id)return;(async()=>{const {data}=await supabase.from("projects").select("id,name,project_type,status,progress,address,client_name,manager_name,settings").eq("id",id).single();setProject(data); const [w,c]=await Promise.all([
     supabase.from("workers").select("id",{count:"exact",head:true}).eq("project_id",id).eq("active",true),
