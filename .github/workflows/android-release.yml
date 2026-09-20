@@ -33,10 +33,47 @@ jobs:
         run: npx eas-cli@latest init --account mhrhpr --non-interactive
 
       - name: Build Android APK with EAS
+        id: eas-build
         working-directory: apps/mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: npx eas-cli@latest build --platform android --profile preview --non-interactive --wait --json > ../../eas-build.json
+        run: |
+          set +e
+          npx eas-cli@latest build --platform android --profile preview --non-interactive --wait --json > ../../eas-build.json
+          status=$?
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit "$status"
+
+      - name: Diagnose EAS build failure
+        if: failure()
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          try {
+            const raw = fs.readFileSync('../../eas-build.json', 'utf8').trim();
+            const data = JSON.parse(raw);
+            const build = Array.isArray(data) ? data[0] : data;
+            if (build?.id) process.env.EAS_BUILD_ID = build.id;
+            console.log('EAS_BUILD_ID=' + (build?.id || 'unknown'));
+            console.log(JSON.stringify({
+              id: build?.id,
+              status: build?.status,
+              platform: build?.platform,
+              profile: build?.buildProfile,
+              error: build?.error || null,
+              artifacts: build?.artifacts || null,
+            }, null, 2));
+          } catch (error) {
+            console.log('Could not parse eas-build.json:', error.message);
+          }
+          NODE
+          BUILD_ID=$(node -e "const fs=require('fs'); const x=JSON.parse(fs.readFileSync('../../eas-build.json','utf8')); const b=Array.isArray(x)?x[0]:x; process.stdout.write(b?.id||'')")
+          if [ -n "$BUILD_ID" ]; then
+            npx eas-cli@latest build:view "$BUILD_ID" --json || true
+          fi
 
       - name: Extract APK URL
         id: apk
