@@ -6,6 +6,10 @@ on:
     branches: [main]
     tags: ["v*.*.*"]
 
+concurrency:
+  group: kargahyar-android-release
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
