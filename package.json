@@ -1,1 +1,17 @@
-{"name":"kargahyar","private":true,"workspaces":["apps/*","packages/*"],"scripts":{"build:web":"npm --workspace apps/web run build","dev:web":"npm --workspace apps/web run dev","typecheck":"npm --workspaces run typecheck"}}
+{
+  "name": "kargahyar",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build:web": "npm --workspace apps/web run build",
+    "dev:web": "npm --workspace apps/web run dev",
+    "typecheck": "npm --workspaces run typecheck"
+  },
+  "overrides": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  }
+}
