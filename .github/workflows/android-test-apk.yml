@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: kargahyar-android-test-apk
+  group: kargahyar-android-test-apk-v2
   cancel-in-progress: true
 
 jobs:
