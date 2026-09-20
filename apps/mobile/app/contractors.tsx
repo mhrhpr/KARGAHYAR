@@ -1,5 +1,5 @@
 import {useCallback,useState} from "react";
-import {useFocusEffect} from "@react-navigation/native";
+import {useFocusEffect} from "expo-router";
 import {Alert,Pressable,SafeAreaView,ScrollView,Text,TextInput,View} from "react-native";
 import {router,useLocalSearchParams} from "expo-router";
 import {supabase} from "../lib/supabase";
