@@ -14,8 +14,8 @@ const toNumber = (value: string) => Number(value.replace(/[^0-9.]/g, "")) || 0;
 const todayISO = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tehran", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 
 export default function DailyReport() {
-  const params = useLocalSearchParams<{ projectId?: string }>();
-  const [step, setStep] = useState(1);
+  const params = useLocalSearchParams<{ projectId?: string; start?: string }>();
+  const [step, setStep] = useState(params.start === "1" || Boolean(params.projectId) ? 1 : 0);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectId, setProjectId] = useState(params.projectId || "");
   const [kind, setKind] = useState<"worker" | "contractor" | null>(null);
@@ -30,6 +30,7 @@ export default function DailyReport() {
   const [rate, setRate] = useState("");
   const [busy, setBusy] = useState(false);
   const [success, setSuccess] = useState<"synced" | "queued" | null>(null);
+  const todayLabel = new Intl.DateTimeFormat("fa-IR-u-ca-persian", { dateStyle: "full", timeZone: "Asia/Tehran" }).format(new Date());
 
   useEffect(() => {
     (async () => {
@@ -105,6 +106,45 @@ export default function DailyReport() {
     }
   };
 
+  if (step === 0) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: BRAND.bg, padding: 20 }}>
+        <View style={{ flex: 1, justifyContent: "center" }}>
+          <Text style={{ color: BRAND.muted, textAlign: "center" }}>{todayLabel}</Text>
+          <Text style={{ color: BRAND.text, fontSize: 31, fontWeight: "900", textAlign: "center", marginTop: 10 }}>امروز گزارشی داری؟</Text>
+          <Text style={{ color: BRAND.muted, fontSize: 16, textAlign: "center", marginTop: 8 }}>کارگاهیار گزارش روزانه را در چند مرحله کوتاه ثبت می‌کند.</Text>
+          <View style={{ gap: 10, marginTop: 28 }}>
+            <Pressable onPress={() => setStep(1)} style={{ backgroundColor: BRAND.accent, padding: 17, borderRadius: 15 }}>
+              <Text style={{ color: "#fff", textAlign: "center", fontWeight: "900" }}>بله، گزارش دارم</Text>
+            </Pressable>
+            <Pressable onPress={() => setStep(-1)} style={{ backgroundColor: BRAND.surface, borderWidth: 1, borderColor: BRAND.border, padding: 17, borderRadius: 15 }}>
+              <Text style={{ color: BRAND.text, textAlign: "center", fontWeight: "800" }}>امروز گزارشی ندارم</Text>
+            </Pressable>
+            <Pressable onPress={() => setStep(-2)} style={{ backgroundColor: BRAND.surface, borderWidth: 1, borderColor: BRAND.border, padding: 17, borderRadius: 15 }}>
+              <Text style={{ color: BRAND.muted, textAlign: "center", fontWeight: "800" }}>امروز تعطیل بود</Text>
+            </Pressable>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (step === -1 || step === -2) {
+    const holiday = step === -2;
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: BRAND.bg, padding: 20 }}>
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <Text style={{ fontSize: 46 }}>{holiday ? "🌙" : "✓"}</Text>
+          <Text style={{ color: BRAND.text, fontSize: 25, fontWeight: "900", textAlign: "center", marginTop: 14 }}>{holiday ? "روز تعطیل ثبت شد." : "باشه، امروز می‌گذره."}</Text>
+          <Text style={{ color: BRAND.muted, textAlign: "center", marginTop: 8 }}>{holiday ? "امروز برای یادآوری گزارش در نظر گرفته نمی‌شود." : "فردا دوباره می‌بینمت."}</Text>
+          <Pressable onPress={() => router.replace("/home")} style={{ marginTop: 24, backgroundColor: BRAND.text, padding: 15, borderRadius: 14, minWidth: 180 }}>
+            <Text style={{ color: BRAND.bg, textAlign: "center", fontWeight: "900" }}>پایان</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (success) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: BRAND.bg, padding: 20 }}>
@@ -138,7 +178,7 @@ export default function DailyReport() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: BRAND.bg, padding: 20 }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-        <Text style={{ color: BRAND.muted }}>گزارش روزانه · مرحله {step} از 4</Text>
+        <Text style={{ color: BRAND.muted }}>{todayLabel} · مرحله {step} از 4</Text>
         <Text style={{ color: BRAND.text, fontSize: 29, fontWeight: "900", marginTop: 4 }}>
           {step === 1 ? "برای کدام پروژه؟" : step === 2 ? "نوع گزارش را انتخاب کن" : kind === "worker" ? "گزارش نیروی روزمزد" : "گزارش پیمانکار"}
         </Text>
