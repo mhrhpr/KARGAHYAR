@@ -58,3 +58,7 @@ export async function initializeNotifications() {
   const frequency = await getReminderFrequency();
   await configureReminder(frequency);
 }
+
+export async function refreshReportReminder() {
+  await configureReminder(await getReminderFrequency());
+}
