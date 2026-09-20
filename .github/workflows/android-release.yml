@@ -47,7 +47,7 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           set +e
-          npx eas-cli@latest build --platform android --profile preview --non-interactive --wait --json > ../../eas-build.json
+          timeout 30m npx eas-cli@latest build --platform android --profile preview --non-interactive --wait --json > ../../eas-build.json
           status=$?
           echo "exit_code=$status" >> "$GITHUB_OUTPUT"
           exit "$status"
