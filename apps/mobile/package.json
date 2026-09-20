@@ -10,11 +10,11 @@
     "expo": "~57.0.22",
     "expo-router": "~57.0.22",
     "react": "19.2.3",
-    "react-native": "0.86.0",
-    "expo-sqlite": "~16.0.0",
-    "expo-notifications": "~0.31.0",
-    "expo-local-authentication": "~17.0.0",
-    "expo-secure-store": "~15.0.0",
+    "react-native": "0.86.3",
+    "expo-sqlite": "~57.0.3",
+    "expo-notifications": "~57.0.20",
+    "expo-local-authentication": "~57.0.3",
+    "expo-secure-store": "~57.0.4",
     "@supabase/supabase-js": "^2.57.0",
     "react-native-url-polyfill": "^2.0.0",
     "expo-constants": "~57.0.19",
@@ -23,7 +23,7 @@
     "react-native-screens": "~4.26.0"
   },
   "devDependencies": {
-    "typescript": "^5.8.0"
+    "typescript": "~6.0.3"
   },
   "main": "expo-router/entry"
 }
