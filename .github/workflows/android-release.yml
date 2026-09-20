@@ -3,7 +3,6 @@ name: KARGAHYAR Android Release
 on:
   workflow_dispatch:
   push:
-    branches: [main]
     tags: ["v*.*.*"]
 
 concurrency:
@@ -16,6 +15,7 @@ permissions:
 jobs:
   android-release:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
 
@@ -29,6 +29,10 @@ jobs:
       - name: Align Expo SDK dependencies
         working-directory: apps/mobile
         run: CI=1 npx expo install --fix
+
+      - name: Expo Doctor
+        working-directory: apps/mobile
+        run: npx expo-doctor
 
       - name: Ensure EAS project is linked
         working-directory: apps/mobile
