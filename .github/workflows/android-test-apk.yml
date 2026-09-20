@@ -1,20 +1,19 @@
 name: KARGAHYAR Android Test APK
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: kargahyar-android-test-apk-v2
+  group: kargahyar-android-test-apk
   cancel-in-progress: true
 
 jobs:
   android-test-apk:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -35,6 +34,10 @@ jobs:
         working-directory: apps/mobile
         run: CI=1 npx expo install --fix
 
+      - name: Expo Doctor
+        working-directory: apps/mobile
+        run: npx expo-doctor
+
       - name: Generate native Android project
         working-directory: apps/mobile
         run: npx expo prebuild --platform android --non-interactive --no-install
@@ -53,7 +56,18 @@ jobs:
 
       - name: Build standalone debug APK
         working-directory: apps/mobile/android
-        run: ./gradlew assembleDebug --no-daemon
+        run: |
+          set -o pipefail
+          timeout 15m ./gradlew assembleDebug --no-daemon --no-parallel --max-workers=2 --stacktrace --console=plain 2>&1 | tee ../../gradle-build.log
+
+      - name: Upload Gradle diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kargahyar-gradle-diagnostics
+          path: gradle-build.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Verify APK
         run: |
