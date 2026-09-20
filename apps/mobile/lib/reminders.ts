@@ -31,7 +31,7 @@ export async function configureReminder(frequency: ReminderFrequency) {
     title: "کارگاهیار",
     body: frequency === "weekly" ? "وقت ثبت گزارش هفتگی کارگاه است." : "آیا امروز گزارش کارگاه را ثبت کرده‌ای؟",
     categoryIdentifier: REPORT_CATEGORY,
-    data: { route: "/daily-report" },
+    data: { route: "/daily-report?start=1" },
   };
 
   if (frequency === "hourly") {
