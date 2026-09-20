@@ -35,6 +35,8 @@ export const metadata: Metadata = {
     title: "کارگاهیار | مدیریت کارگاه، پروژه و هزینه",
     description: "ثبت سریع کارگاه، دستمزد، پیمانکار، هزینه و مصالح در موبایل.",
   },
+  authors: [{ name: "کارگاهیار" }],
+  alternates: { canonical: siteUrl },
   robots: { index: true, follow: true },
 };
 
