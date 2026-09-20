@@ -1,0 +1,1 @@
+import type {MetadataRoute} from "next"; export default function sitemap():MetadataRoute.Sitemap{return [{url:"https://kargahyar.ir",lastModified:new Date(),changeFrequency:"weekly",priority:1},{url:"https://kargahyar.ir/download",lastModified:new Date(),changeFrequency:"weekly",priority:.9}]}
