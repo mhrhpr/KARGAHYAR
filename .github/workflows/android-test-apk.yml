@@ -35,6 +35,18 @@ jobs:
         working-directory: apps/mobile
         run: npx expo prebuild --platform android --non-interactive --no-install
 
+      - name: Make debug APK standalone
+        working-directory: apps/mobile
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("android/app/build.gradle")
+          s = p.read_text()
+          if "debuggableVariants = []" not in s:
+              s = s.replace("react {", "react {\n    debuggableVariants = []", 1)
+          p.write_text(s)
+          PY
+
       - name: Build standalone debug APK
         working-directory: apps/mobile/android
         run: ./gradlew assembleDebug --no-daemon
