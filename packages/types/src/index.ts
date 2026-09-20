@@ -1,0 +1,1 @@
+export type ProjectStatus="active"|"paused"|"completed"; export interface Project{id:string;name:string;type:string;status:ProjectStatus;progress:number}
