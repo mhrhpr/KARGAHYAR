@@ -1,5 +1,5 @@
 import {useEffect,useState} from "react";
-import {Pressable,SafeAreaView,ScrollView,Text,View,StyleSheet} from "react-native";
+import {Pressable,SafeAreaView,ScrollView,Text,View} from "react-native";
 import {router,useLocalSearchParams} from "expo-router";
 import {supabase} from "../lib/supabase";
 import {BRAND} from "../lib/brand";
@@ -44,4 +44,4 @@ export default function ProjectHome(){
     </View>
   </ScrollView></SafeAreaView>;
 }
-const styles=StyleSheet.create({primary:{backgroundColor:BRAND.accent,padding:18,borderRadius:17},primaryText:{color:"#fff",fontSize:18,fontWeight:"900" as const},card:{backgroundColor:BRAND.surface,borderWidth:1,borderColor:BRAND.border,padding:18,borderRadius:17},title:{color:BRAND.text,fontSize:17,fontWeight:"800" as const},sub:{color:BRAND.muted,marginTop:3}};
+const styles={primary:{backgroundColor:BRAND.accent,padding:18,borderRadius:17},primaryText:{color:"#fff",fontSize:18,fontWeight:"900" as const},card:{backgroundColor:BRAND.surface,borderWidth:1,borderColor:BRAND.border,padding:18,borderRadius:17},title:{color:BRAND.text,fontSize:17,fontWeight:"800" as const},sub:{color:BRAND.muted,marginTop:3}};

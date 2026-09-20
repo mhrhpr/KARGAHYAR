@@ -1,6 +1,6 @@
 import {useCallback,useState} from "react";
 import {useFocusEffect} from "@react-navigation/native";
-import {Alert,Pressable,SafeAreaView,ScrollView,Text,TextInput,View,StyleSheet} from "react-native";
+import {Alert,Pressable,SafeAreaView,ScrollView,Text,TextInput,View} from "react-native";
 import {router,useLocalSearchParams} from "expo-router";
 import {supabase} from "../lib/supabase";
 import {BRAND} from "../lib/brand";
@@ -16,4 +16,4 @@ export default function Workers(){
   <View style={{marginTop:18,gap:10,backgroundColor:BRAND.surface,padding:16,borderRadius:18,borderWidth:1,borderColor:BRAND.border}}><TextInput value={name} onChangeText={setName} placeholder="نام نیرو" placeholderTextColor="#707986" style={styles.input}/><TextInput value={specialty} onChangeText={setSpecialty} placeholder="تخصص، مثلاً آرماتوربند" placeholderTextColor="#707986" style={styles.input}/><TextInput value={wage} onChangeText={setWage} placeholder="مزد روزانه به تومان" keyboardType="numeric" placeholderTextColor="#707986" style={styles.input}/><Pressable disabled={busy||!projectId} onPress={add} style={[styles.primary,{opacity:(busy||!projectId)?0.5:1}]}><Text style={styles.primaryText}>{busy?"در حال ثبت...":"افزودن نیرو"}</Text></Pressable></View>
   <View style={{gap:10,marginTop:20}}>{items.map(w=><View key={w.id} style={styles.card}><Text style={styles.title}>{w.name}</Text><Text style={styles.sub}>{w.specialty||"بدون تخصص"} · {Number(w.daily_wage||0).toLocaleString("fa-IR")} تومان</Text></View>)}</View></ScrollView></SafeAreaView>;
 }
-const styles=StyleSheet.create({input:{color:BRAND.text,padding:14,borderWidth:1,borderColor:BRAND.border,borderRadius:12,backgroundColor:BRAND.bg},primary:{backgroundColor:BRAND.accent,padding:15,borderRadius:13},primaryText:{color:"#fff",textAlign:"center" as const,fontWeight:"900" as const},card:{backgroundColor:BRAND.surface,borderWidth:1,borderColor:BRAND.border,borderRadius:16,padding:16},title:{color:BRAND.text,fontWeight:"800" as const,fontSize:17},sub:{color:BRAND.muted,marginTop:3}};
+const styles={input:{color:BRAND.text,padding:14,borderWidth:1,borderColor:BRAND.border,borderRadius:12,backgroundColor:BRAND.bg},primary:{backgroundColor:BRAND.accent,padding:15,borderRadius:13},primaryText:{color:"#fff",textAlign:"center" as const,fontWeight:"900" as const},card:{backgroundColor:BRAND.surface,borderWidth:1,borderColor:BRAND.border,borderRadius:16,padding:16},title:{color:BRAND.text,fontWeight:"800" as const,fontSize:17},sub:{color:BRAND.muted,marginTop:3}};

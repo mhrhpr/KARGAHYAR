@@ -1,6 +1,6 @@
 import {useCallback,useState} from "react";
 import {useFocusEffect} from "@react-navigation/native";
-import {Alert,Pressable,SafeAreaView,ScrollView,Text,TextInput,View,StyleSheet} from "react-native";
+import {Alert,Pressable,SafeAreaView,ScrollView,Text,TextInput,View} from "react-native";
 import {router,useLocalSearchParams} from "expo-router";
 import {supabase} from "../lib/supabase";
 import {queueAndSync,ExpenseOperation} from "../lib/offline";
@@ -24,4 +24,4 @@ export default function Expenses(){
     <View style={{gap:10,marginTop:20}}>{items.map(e=><View key={e.id} style={styles.card}><View style={{flexDirection:"row",justifyContent:"space-between"}}><Text style={styles.title}>{e.category}</Text><Text style={styles.amount}>{Number(e.amount).toLocaleString("fa-IR")} تومان</Text></View><Text style={styles.sub}>{e.description||"بدون توضیح"} · {e.expense_date}</Text></View>)}</View>
   </ScrollView></SafeAreaView>;
 }
-const styles=StyleSheet.create({input:{backgroundColor:BRAND.bg,color:BRAND.text,padding:15,borderRadius:13,borderWidth:1,borderColor:BRAND.border},primary:{backgroundColor:BRAND.accent,padding:15,borderRadius:13},primaryText:{color:"#fff",textAlign:"center" as const,fontWeight:"900" as const},card:{backgroundColor:BRAND.surface,borderWidth:1,borderColor:BRAND.border,borderRadius:17,padding:17},title:{color:BRAND.text,fontSize:17,fontWeight:"800" as const},amount:{color:BRAND.text,fontWeight:"900" as const},sub:{color:BRAND.muted,marginTop:5}};
+const styles={input:{backgroundColor:BRAND.bg,color:BRAND.text,padding:15,borderRadius:13,borderWidth:1,borderColor:BRAND.border},primary:{backgroundColor:BRAND.accent,padding:15,borderRadius:13},primaryText:{color:"#fff",textAlign:"center" as const,fontWeight:"900" as const},card:{backgroundColor:BRAND.surface,borderWidth:1,borderColor:BRAND.border,borderRadius:17,padding:17},title:{color:BRAND.text,fontSize:17,fontWeight:"800" as const},amount:{color:BRAND.text,fontWeight:"900" as const},sub:{color:BRAND.muted,marginTop:5}};

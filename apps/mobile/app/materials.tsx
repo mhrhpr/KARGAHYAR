@@ -1,6 +1,6 @@
 import {useCallback,useState} from "react";
 import {useFocusEffect} from "@react-navigation/native";
-import {Alert,Pressable,SafeAreaView,ScrollView,Text,TextInput,View,StyleSheet} from "react-native";
+import {Alert,Pressable,SafeAreaView,ScrollView,Text,TextInput,View} from "react-native";
 import {router,useLocalSearchParams} from "expo-router";
 import {supabase} from "../lib/supabase";
 import {queueAndSync,MaterialOperation} from "../lib/offline";
@@ -31,4 +31,4 @@ export default function Materials(){
     </View>})}</View>
   </ScrollView></SafeAreaView>;
 }
-const styles=StyleSheet.create({input:{backgroundColor:BRAND.bg,color:BRAND.text,padding:15,borderRadius:13,borderWidth:1,borderColor:BRAND.border},primary:{backgroundColor:BRAND.accent,padding:15,borderRadius:13},primaryText:{color:"#fff",textAlign:"center" as const,fontWeight:"900" as const}};
+const styles={input:{backgroundColor:BRAND.bg,color:BRAND.text,padding:15,borderRadius:13,borderWidth:1,borderColor:BRAND.border},primary:{backgroundColor:BRAND.accent,padding:15,borderRadius:13},primaryText:{color:"#fff",textAlign:"center" as const,fontWeight:"900" as const}};
