@@ -1,6 +1,6 @@
 import {useCallback,useState} from "react";
 import {useFocusEffect} from "@react-navigation/native";
-import {Alert,Pressable,SafeAreaView,ScrollView,Text,TextInput,View} from "react-native";
+import {Alert,Pressable,SafeAreaView,ScrollView,Text,TextInput,View,StyleSheet} from "react-native";
 import {router,useLocalSearchParams} from "expo-router";
 import {supabase} from "../lib/supabase";
 import {BRAND} from "../lib/brand";
@@ -16,4 +16,4 @@ export default function Contractors(){
   <View style={{marginTop:18,gap:10,backgroundColor:BRAND.surface,padding:16,borderRadius:18,borderWidth:1,borderColor:BRAND.border}}><TextInput value={name} onChangeText={setName} placeholder="نام پیمانکار" placeholderTextColor="#707986" style={styles.input}/><TextInput value={specialty} onChangeText={setSpecialty} placeholder="زمینه کاری، مثلاً گچ‌کار" placeholderTextColor="#707986" style={styles.input}/><TextInput value={unit} onChangeText={setUnit} placeholder="واحد، مثلاً مترمربع" placeholderTextColor="#707986" style={styles.input}/><TextInput value={rate} onChangeText={setRate} placeholder="نرخ واحد به تومان" keyboardType="numeric" placeholderTextColor="#707986" style={styles.input}/><Pressable disabled={busy||!projectId} onPress={add} style={[styles.primary,{opacity:(busy||!projectId)?0.5:1}]}><Text style={styles.primaryText}>{busy?"در حال ثبت...":"افزودن پیمانکار"}</Text></Pressable></View>
   <View style={{gap:10,marginTop:20}}>{items.map(c=><View key={c.id} style={styles.card}><Text style={styles.title}>{c.name}</Text><Text style={styles.sub}>{c.specialty||"بدون تخصص"} · {c.unit||"واحد"} · {Number(c.unit_rate||0).toLocaleString("fa-IR")} تومان</Text></View>)}</View></ScrollView></SafeAreaView>;
 }
-const styles={input:{color:BRAND.text,padding:14,borderWidth:1,borderColor:BRAND.border,borderRadius:12,backgroundColor:BRAND.bg},primary:{backgroundColor:BRAND.accent,padding:15,borderRadius:13},primaryText:{color:"#fff",textAlign:"center",fontWeight:"900"},card:{backgroundColor:BRAND.surface,borderWidth:1,borderColor:BRAND.border,borderRadius:16,padding:16},title:{color:BRAND.text,fontWeight:"800",fontSize:17},sub:{color:BRAND.muted,marginTop:3}};
+const styles=StyleSheet.create({input:{color:BRAND.text,padding:14,borderWidth:1,borderColor:BRAND.border,borderRadius:12,backgroundColor:BRAND.bg},primary:{backgroundColor:BRAND.accent,padding:15,borderRadius:13},primaryText:{color:"#fff",textAlign:"center",fontWeight:"900"},card:{backgroundColor:BRAND.surface,borderWidth:1,borderColor:BRAND.border,borderRadius:16,padding:16},title:{color:BRAND.text,fontWeight:"800",fontSize:17},sub:{color:BRAND.muted,marginTop:3}};
