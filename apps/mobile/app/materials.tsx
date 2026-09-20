@@ -10,10 +10,10 @@ type Material={id:string;name:string;unit:string;current_stock:number;reorder_po
 
 export default function Materials(){
   const {projectId}=useLocalSearchParams<{projectId:string}>(); const [items,setItems]=useState<Material[]>([]);
-  const [name,setName]=useState(""); const [unit,setUnit]=useState("کیسه"); const [stock,setStock]=useState("0"); const [reorder,setReorder]=useState("5"); const [busy,setBusy]=useState(false);
+  const [name,setName]=useState(""); const [unit,setUnit]=useState("کیسه"); const [stock,setStock]=useState("0"); const [reorder,setReorder]=useState("5"); const [consumeQty,setConsumeQty]=useState("1"); const [busy,setBusy]=useState(false);
   const load=async()=>{if(!projectId)return;const {data}=await supabase.from("materials").select("id,name,unit,current_stock,reorder_point").eq("project_id",projectId).order("name");setItems(data||[])}; useFocusEffect(useCallback(()=>{load()},[projectId]));
   const add=async()=>{if(!projectId||!name.trim())return;setBusy(true);const {error}=await supabase.from("materials").insert({project_id:projectId,name:name.trim(),unit:unit.trim()||"واحد",current_stock:Number(stock)||0,reorder_point:Number(reorder)||0});setBusy(false);if(error)Alert.alert("ثبت مصالح ناموفق بود",error.message);else{setName("");setStock("0");await load();}};
-  const consume=async(item:Material)=>{const raw="1";const quantity=Number(raw);const op:MaterialOperation={kind:"material",projectId:projectId!,materialId:item.id,transactionType:"out",quantity,unitCost:0,note:"مصرف ثبت‌شده",transactionDate:new Date().toISOString().slice(0,10)};const res=await queueAndSync(op);Alert.alert(res.queued?"ذخیره شد":"ثبت شد",res.queued?"مصرف روی گوشی نگه داشته شد تا اتصال برقرار شود.":"مصرف یک "+item.unit+" ثبت شد.");load()};
+  const consume=async(item:Material)=>{const quantity=Number(consumeQty.replace(/[^0-9.]/g,""))||0; if(quantity<=0)return;const op:MaterialOperation={kind:"material",projectId:projectId!,materialId:item.id,transactionType:"out",quantity,unitCost:0,note:"مصرف ثبت‌شده",transactionDate:new Date().toISOString().slice(0,10)};const res=await queueAndSync(op);Alert.alert(res.queued?"ذخیره شد":"ثبت شد",res.queued?"مصرف روی گوشی نگه داشته شد تا اتصال برقرار شود.":"مصرف یک "+item.unit+" ثبت شد.");load()};
   return <SafeAreaView style={{flex:1,backgroundColor:BRAND.bg,padding:20}}><ScrollView contentContainerStyle={{paddingBottom:40}}>
     <Pressable onPress={()=>router.back()}><Text style={{color:BRAND.muted}}>← بازگشت</Text></Pressable><Text style={{color:BRAND.text,fontSize:29,fontWeight:"900",marginTop:12}}>مصالح</Text>
     <View style={{backgroundColor:BRAND.surface,borderWidth:1,borderColor:BRAND.border,borderRadius:18,padding:16,marginTop:20,gap:10}}>
@@ -27,7 +27,7 @@ export default function Materials(){
       <View style={{flexDirection:"row",justifyContent:"space-between"}}><Text style={{color:BRAND.text,fontSize:18,fontWeight:"900"}}>{item.name}</Text><Text style={{color:low?"#F2B56B":"#7DD3A7",fontWeight:"800"}}>{low?"⚠️ نیاز به خرید":"موجودی مناسب"}</Text></View>
       <Text style={{color:BRAND.muted,marginTop:5}}>موجودی: {Number(item.current_stock).toLocaleString("fa-IR")} {item.unit}</Text>
       <Text style={{color:BRAND.muted}}>حد هشدار: {Number(item.reorder_point).toLocaleString("fa-IR")} {item.unit}</Text>
-      <Pressable onPress={()=>consume(item)} style={{marginTop:12,borderWidth:1,borderColor:BRAND.border,padding:12,borderRadius:12}}><Text style={{color:BRAND.text,textAlign:"center",fontWeight:"800"}}>ثبت مصرف ۱ {item.unit}</Text></Pressable>
+      <View style={{flexDirection:"row",gap:8,alignItems:"center",marginTop:12}}><TextInput value={consumeQty} onChangeText={setConsumeQty} keyboardType="numeric" placeholder="مقدار مصرف" placeholderTextColor="#707986" style={{flex:1,backgroundColor:BRAND.bg,color:BRAND.text,padding:12,borderRadius:12,borderWidth:1,borderColor:BRAND.border}}/><Pressable onPress={()=>consume(item)} style={{backgroundColor:BRAND.accent,padding:13,borderRadius:12}}><Text style={{color:"#fff",fontWeight:"900"}}>ثبت مصرف</Text></Pressable></View>
     </View>})}</View>
   </ScrollView></SafeAreaView>;
 }
