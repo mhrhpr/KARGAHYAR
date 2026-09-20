@@ -18,21 +18,21 @@ export default function ProjectHome(){
   const ids=(reports||[]).map(r=>r.id);
   if(ids.length){const [we,ce]=await Promise.all([supabase.from("worker_entries").select("payable,advance").in("report_id",ids),supabase.from("contractor_entries").select("amount").in("report_id",ids)]); const wc=(we.data||[]).reduce((s,r)=>s+Number(r.payable||0)+Number(r.advance||0),0); const cc=(ce.data||[]).reduce((s,r)=>s+Number(r.amount||0),0); setCost(wc+cc);} const [ex,py]=await Promise.all([supabase.from("expenses").select("amount").eq("project_id",id),supabase.from("payments").select("amount").eq("project_id",id)]); setCost((v)=>v+(ex.data||[]).reduce((s,r)=>s+Number(r.amount||0),0)); setPaid((py.data||[]).reduce((s,r)=>s+Number(r.amount||0),0));
   })()},[id]);
-  if(!project)return <SafeAreaView style={{flex:1,backgroundColor:BRAND.bg,padding:20}}><Text style={{color:BRAND.text,fontSize:24,fontWeight:"900"}}>در حال بارگذاری...</Text></SafeAreaView>;
+  if(!project)return <SafeAreaView style={{flex:1,backgroundColor:BRAND.bg,padding:20}}><Text style={{color:BRAND.text,fontSize:24,fontWeight:"900" as const}}>در حال بارگذاری...</Text></SafeAreaView>;
   const modules=project.settings?.modules||{};
   const go=(path:string)=>router.push({pathname:path as any,params:{projectId:project.id}});
   return <SafeAreaView style={{flex:1,backgroundColor:BRAND.bg,padding:20}}><ScrollView contentContainerStyle={{paddingBottom:40}}>
     <Pressable onPress={()=>router.back()}><Text style={{color:BRAND.muted}}>← پروژه‌ها</Text></Pressable>
-    <Text style={{color:BRAND.text,fontSize:30,fontWeight:"900",marginTop:12}}>{project.name}</Text>
+    <Text style={{color:BRAND.text,fontSize:30,fontWeight:"900" as const,marginTop:12}}>{project.name}</Text>
     <Text style={{color:BRAND.muted,marginTop:4}}>{project.project_type} · {project.status==="active"?"فعال":"غیرفعال"}</Text>
     <View style={{backgroundColor:BRAND.surface,borderWidth:1,borderColor:BRAND.border,borderRadius:20,padding:20,marginTop:20}}>
       <Text style={{color:BRAND.muted}}>نمای سریع پروژه</Text>
       <View style={{flexDirection:"row",gap:10,marginTop:14}}>
-        {[["نیرو",workers],["پیمانکار",contractors],["پیشرفت",(project.progress||0)+"%"]].map(([t,v])=><View key={String(t)} style={{flex:1}}><Text style={{color:BRAND.muted,fontSize:12}}>{t}</Text><Text style={{color:BRAND.text,fontSize:20,fontWeight:"900",marginTop:3}}>{v}</Text></View>)}
+        {[["نیرو",workers],["پیمانکار",contractors],["پیشرفت",(project.progress||0)+"%"]].map(([t,v])=><View key={String(t)} style={{flex:1}}><Text style={{color:BRAND.muted,fontSize:12}}>{t}</Text><Text style={{color:BRAND.text,fontSize:20,fontWeight:"900" as const,marginTop:3}}>{v}</Text></View>)}
       </View>
-      <Text style={{color:BRAND.muted,marginTop:16}}>هزینه عملیاتی ثبت‌شده: <Text style={{color:BRAND.text,fontWeight:"900"}}>{cost.toLocaleString("fa-IR")} تومان</Text></Text><Text style={{color:BRAND.muted,marginTop:6}}>پرداخت ثبت‌شده: <Text style={{color:"#7DD3A7",fontWeight:"900"}}>{paid.toLocaleString("fa-IR")} تومان</Text></Text>
+      <Text style={{color:BRAND.muted,marginTop:16}}>هزینه عملیاتی ثبت‌شده: <Text style={{color:BRAND.text,fontWeight:"900" as const}}>{cost.toLocaleString("fa-IR")} تومان</Text></Text><Text style={{color:BRAND.muted,marginTop:6}}>پرداخت ثبت‌شده: <Text style={{color:"#7DD3A7",fontWeight:"900" as const}}>{paid.toLocaleString("fa-IR")} تومان</Text></Text>
     </View>
-    <Text style={{color:BRAND.text,fontSize:21,fontWeight:"900",marginTop:26}}>عملیات پروژه</Text>
+    <Text style={{color:BRAND.text,fontSize:21,fontWeight:"900" as const,marginTop:26}}>عملیات پروژه</Text>
     <View style={{gap:10,marginTop:12}}>
       {modules.reports!==false&&<Pressable onPress={()=>go("/daily-report")} style={styles.primary}><Text style={styles.primaryText}>📋 گزارش روزانه</Text><Text style={styles.sub}>ثبت سریع کارکرد و فعالیت</Text></Pressable>}
       {modules.workers!==false&&<Pressable onPress={()=>go("/workers")} style={styles.card}><Text style={styles.title}>👷 نیروها</Text><Text style={styles.sub}>افراد، تخصص و دستمزد</Text></Pressable>}
@@ -44,4 +44,4 @@ export default function ProjectHome(){
     </View>
   </ScrollView></SafeAreaView>;
 }
-const styles=StyleSheet.create({primary:{backgroundColor:BRAND.accent,padding:18,borderRadius:17},primaryText:{color:"#fff",fontSize:18,fontWeight:"900"},card:{backgroundColor:BRAND.surface,borderWidth:1,borderColor:BRAND.border,padding:18,borderRadius:17},title:{color:BRAND.text,fontSize:17,fontWeight:"800"},sub:{color:BRAND.muted,marginTop:3}};
+const styles=StyleSheet.create({primary:{backgroundColor:BRAND.accent,padding:18,borderRadius:17},primaryText:{color:"#fff",fontSize:18,fontWeight:"900" as const},card:{backgroundColor:BRAND.surface,borderWidth:1,borderColor:BRAND.border,padding:18,borderRadius:17},title:{color:BRAND.text,fontSize:17,fontWeight:"800" as const},sub:{color:BRAND.muted,marginTop:3}};
