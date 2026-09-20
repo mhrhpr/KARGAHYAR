@@ -31,6 +31,10 @@ jobs:
       - name: Install dependencies
         run: npm install --workspace apps/mobile --ignore-scripts
 
+      - name: Align Expo SDK dependencies
+        working-directory: apps/mobile
+        run: CI=1 npx expo install --fix
+
       - name: Generate native Android project
         working-directory: apps/mobile
         run: npx expo prebuild --platform android --non-interactive --no-install
