@@ -3,6 +3,7 @@ import * as SecureStore from "expo-secure-store";
 
 export type ReminderFrequency = "off" | "hourly" | "daily" | "weekly";
 const KEY = "kargahyar.reminder.frequency";
+const SKIP_DATE_KEY = "kargahyar.reminder.skip_date";
 export const REPORT_CATEGORY = "kargahyar.daily_report";
 
 export async function configureNotificationCategory() {
@@ -10,6 +11,22 @@ export async function configureNotificationCategory() {
     { identifier: "report_yes", buttonTitle: "بله، گزارش دارم", options: { opensAppToForeground: true } },
     { identifier: "report_no", buttonTitle: "امروز ندارم", options: { opensAppToForeground: false } },
   ]);
+}
+
+function tehranDateKey() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tehran", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+}
+
+export async function suppressReminderForToday() {
+  await SecureStore.setItemAsync(SKIP_DATE_KEY, tehranDateKey());
+}
+
+export async function clearReminderSuppression() {
+  await SecureStore.deleteItemAsync(SKIP_DATE_KEY);
+}
+
+export async function isReminderSuppressedToday() {
+  return (await SecureStore.getItemAsync(SKIP_DATE_KEY)) === tehranDateKey();
 }
 
 export async function getReminderFrequency(): Promise<ReminderFrequency> {
