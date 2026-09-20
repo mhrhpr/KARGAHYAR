@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { supabase } from "../lib/supabase";
 import { queueAndSync } from "../lib/offline";
 import { BRAND } from "../lib/brand";
-import { refreshReportReminder } from "../lib/reminders";
+import { clearReminderSuppression, refreshReportReminder, suppressReminderForToday } from "../lib/reminders";
 
 type Project = { id: string; name: string; project_type: string };
 type Worker = { id: string; name: string; specialty: string | null; daily_wage: number | null; hourly_wage: number | null; overtime_rate: number | null };
@@ -97,6 +97,7 @@ export default function DailyReport() {
           };
 
       const result = await queueAndSync(operation);
+      await clearReminderSuppression();
       await refreshReportReminder();
       setSuccess(result.queued ? "queued" : "synced");
     } catch (error) {
@@ -114,13 +115,13 @@ export default function DailyReport() {
           <Text style={{ color: BRAND.text, fontSize: 31, fontWeight: "900", textAlign: "center", marginTop: 10 }}>امروز گزارشی داری؟</Text>
           <Text style={{ color: BRAND.muted, fontSize: 16, textAlign: "center", marginTop: 8 }}>کارگاهیار گزارش روزانه را در چند مرحله کوتاه ثبت می‌کند.</Text>
           <View style={{ gap: 10, marginTop: 28 }}>
-            <Pressable onPress={() => setStep(1)} style={{ backgroundColor: BRAND.accent, padding: 17, borderRadius: 15 }}>
+            <Pressable onPress={async () => { await clearReminderSuppression(); setStep(1); }} style={{ backgroundColor: BRAND.accent, padding: 17, borderRadius: 15 }}>
               <Text style={{ color: "#fff", textAlign: "center", fontWeight: "900" }}>بله، گزارش دارم</Text>
             </Pressable>
-            <Pressable onPress={() => setStep(-1)} style={{ backgroundColor: BRAND.surface, borderWidth: 1, borderColor: BRAND.border, padding: 17, borderRadius: 15 }}>
+            <Pressable onPress={async () => { await suppressReminderForToday(); setStep(-1); }} style={{ backgroundColor: BRAND.surface, borderWidth: 1, borderColor: BRAND.border, padding: 17, borderRadius: 15 }}>
               <Text style={{ color: BRAND.text, textAlign: "center", fontWeight: "800" }}>امروز گزارشی ندارم</Text>
             </Pressable>
-            <Pressable onPress={() => setStep(-2)} style={{ backgroundColor: BRAND.surface, borderWidth: 1, borderColor: BRAND.border, padding: 17, borderRadius: 15 }}>
+            <Pressable onPress={async () => { await suppressReminderForToday(); setStep(-2); }} style={{ backgroundColor: BRAND.surface, borderWidth: 1, borderColor: BRAND.border, padding: 17, borderRadius: 15 }}>
               <Text style={{ color: BRAND.muted, textAlign: "center", fontWeight: "800" }}>امروز تعطیل بود</Text>
             </Pressable>
           </View>
