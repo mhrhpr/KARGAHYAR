@@ -1,43 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Pressable, SafeAreaView, ScrollView, Text, TextInput, View } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { supabase } from "../lib/supabase";
-import { savePendingReport, markReportSynced } from "../lib/offline";
+import { queueAndSync } from "../lib/offline";
 import { BRAND } from "../lib/brand";
 
 type Project = { id: string; name: string; project_type: string };
-type Worker = {
-  id: string;
-  name: string;
-  specialty: string | null;
-  daily_wage: number | null;
-  hourly_wage: number | null;
-  overtime_rate: number | null;
-};
-type Contractor = {
-  id: string;
-  name: string;
-  specialty: string | null;
-  unit: string | null;
-  unit_rate: number | null;
-};
+type Worker = { id: string; name: string; specialty: string | null; daily_wage: number | null; hourly_wage: number | null; overtime_rate: number | null };
+type Contractor = { id: string; name: string; specialty: string | null; unit: string | null; unit_rate: number | null };
 
 const toNumber = (value: string) => Number(value.replace(/[^0-9.]/g, "")) || 0;
-const todayISO = () => {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Tehran",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date());
-  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
-  return `${get("year")}-${get("month")}-${get("day")}`;
-};
+const todayISO = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tehran", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 
 export default function DailyReport() {
+  const params = useLocalSearchParams<{ projectId?: string }>();
   const [step, setStep] = useState(1);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [projectId, setProjectId] = useState("");
+  const [projectId, setProjectId] = useState(params.projectId || "");
   const [kind, setKind] = useState<"worker" | "contractor" | null>(null);
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [contractors, setContractors] = useState<Contractor[]>([]);
@@ -49,16 +28,16 @@ export default function DailyReport() {
   const [quantity, setQuantity] = useState("");
   const [rate, setRate] = useState("");
   const [busy, setBusy] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState<"synced" | "queued" | null>(null);
 
   useEffect(() => {
     (async () => {
       const { data } = await supabase.from("projects").select("id,name,project_type").eq("status", "active").order("created_at", { ascending: false });
       const list = data || [];
       setProjects(list);
-      if (list.length === 1) setProjectId(list[0].id);
+      if (!params.projectId && list.length === 1) setProjectId(list[0].id);
     })();
-  }, []);
+  }, [params.projectId]);
 
   useEffect(() => {
     if (!projectId) return;
@@ -78,7 +57,7 @@ export default function DailyReport() {
   const workerCalculation = useMemo(() => {
     if (!worker) return 0;
     const base = Number(worker.daily_wage || 0) * attendance;
-    const overtimeRate = Number(worker.overtime_rate || worker.hourly_wage || (Number(worker.daily_wage || 0) / 8));
+    const overtimeRate = Number(worker.overtime_rate || worker.hourly_wage || Number(worker.daily_wage || 0) / 8);
     return Math.max(0, Math.round(base + overtimeRate * toNumber(overtimeHours) - toNumber(advance)));
   }, [worker, attendance, overtimeHours, advance]);
 
@@ -88,83 +67,37 @@ export default function DailyReport() {
   );
 
   const resetForNext = () => {
-    setKind(null);
-    setWorkerId("");
-    setContractorId("");
-    setAttendance(1);
-    setOvertimeHours("0");
-    setAdvance("0");
-    setQuantity("");
-    setRate("");
-    setSuccess(false);
-    setStep(2);
-  };
-
-  const ensureDailyReport = async (userId: string) => {
-    const date = todayISO();
-    const existing = await supabase.from("daily_reports").select("id").eq("project_id", projectId).eq("report_date", date).maybeSingle();
-    if (existing.data?.id) return existing.data.id;
-
-    const created = await supabase
-      .from("daily_reports")
-      .insert({ project_id: projectId, report_date: date, status: "complete", created_by: userId })
-      .select("id")
-      .single();
-
-    if (created.data?.id) return created.data.id;
-    if (created.error?.code === "23505") {
-      const retry = await supabase.from("daily_reports").select("id").eq("project_id", projectId).eq("report_date", date).single();
-      if (retry.data?.id) return retry.data.id;
-    }
-    throw created.error || new Error("گزارش روزانه ساخته نشد");
+    setKind(null); setWorkerId(""); setContractorId(""); setAttendance(1); setOvertimeHours("0"); setAdvance("0");
+    setQuantity(""); setRate(""); setSuccess(null); setStep(2);
   };
 
   const save = async () => {
     if (!projectId || !kind) return;
     setBusy(true);
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("نشست کاربر معتبر نیست");
-
       if (kind === "worker" && !workerId) throw new Error("یک نیرو را انتخاب کن");
-      if (kind === "contractor" && !contractorId) throw new Error("یک پیمانکار را انتخاب کن");
+      if (kind === "contractor" && (!contractorId || !quantity)) throw new Error("پیمانکار و مقدار را کامل کن");
 
-      const reportId = await ensureDailyReport(user.user.id);
-      const pendingId = await savePendingReport({
-        projectId,
-        note: kind === "worker"
-          ? `${worker?.name}: کارکرد ${attendance} و ${toNumber(overtimeHours)} ساعت اضافه‌کاری`
-          : `${contractor?.name}: ${toNumber(quantity)} ${contractor?.unit || "واحد"}`,
-      });
-
-      const result = kind === "worker"
-        ? await supabase.from("worker_entries").upsert({
-            report_id: reportId,
-            worker_id: workerId,
-            attendance_factor: attendance,
-            overtime_hours: toNumber(overtimeHours),
-            overtime_amount: Math.max(0, workerCalculation + toNumber(advance) - Number(worker?.daily_wage || 0) * attendance),
-            advance: toNumber(advance),
-            payable: workerCalculation,
-          }, { onConflict: "report_id,worker_id" })
-        : await supabase.from("contractor_entries").insert({
-            report_id: reportId,
-            contractor_id: contractorId,
+      const operation = kind === "worker"
+        ? {
+            kind: "worker_entry" as const,
+            projectId, reportDate: todayISO(), workerId,
+            attendanceFactor: attendance, overtimeHours: toNumber(overtimeHours),
+            overtimeAmount: Math.max(0, workerCalculation + toNumber(advance) - Number(worker?.daily_wage || 0) * attendance),
+            advance: toNumber(advance), payable: workerCalculation,
+          }
+        : {
+            kind: "contractor_entry" as const,
+            projectId, reportDate: todayISO(), contractorId,
             quantity: toNumber(quantity),
-            unit_rate: toNumber(rate) || Number(contractor?.unit_rate || 0),
+            unitRate: toNumber(rate) || Number(contractor?.unit_rate || 0),
             amount: contractorCalculation,
-          });
+          };
 
-      if (result.error) throw result.error;
-
-      await markReportSynced(pendingId);
-      setSuccess(true);
+      const result = await queueAndSync(operation);
+      setSuccess(result.queued ? "queued" : "synced");
     } catch (error) {
-      await savePendingReport({
-        projectId: projectId || null,
-        note: kind === "worker" ? "گزارش نیروی روزمزد در صف همگام‌سازی" : "گزارش پیمانکار در صف همگام‌سازی",
-      });
-      Alert.alert("ثبت انجام نشد", "اطلاعات برای تلاش مجدد روی دستگاه نگه داشته شد.");
+      Alert.alert("ثبت انجام نشد", error instanceof Error ? error.message : "اطلاعات را بررسی کن.");
     } finally {
       setBusy(false);
     }
@@ -174,17 +107,21 @@ export default function DailyReport() {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: BRAND.bg, padding: 20 }}>
         <View style={{ flex: 1, justifyContent: "center" }}>
-          <View style={{ backgroundColor: BRAND.surface, borderWidth: 1, borderColor: "#1f6f4a", borderRadius: 22, padding: 24 }}>
-            <Text style={{ color: "#7DD3A7", fontSize: 16, fontWeight: "800" }}>✓ ثبت موفق</Text>
-            <Text style={{ color: BRAND.text, fontSize: 27, fontWeight: "900", marginTop: 10 }}>گزارش با موفقیت ثبت شد.</Text>
+          <View style={{ backgroundColor: BRAND.surface, borderWidth: 1, borderColor: success === "synced" ? "#1f6f4a" : BRAND.border, borderRadius: 22, padding: 24 }}>
+            <Text style={{ color: success === "synced" ? "#7DD3A7" : BRAND.accent, fontSize: 16, fontWeight: "800" }}>
+              {success === "synced" ? "✓ ثبت و همگام شد" : "⟳ روی گوشی ذخیره شد"}
+            </Text>
+            <Text style={{ color: BRAND.text, fontSize: 27, fontWeight: "900", marginTop: 10 }}>
+              {success === "synced" ? "گزارش با موفقیت ثبت شد." : "گزارش در صف همگام‌سازی است."}
+            </Text>
             <Text style={{ color: BRAND.muted, marginTop: 8 }}>
               {kind === "worker"
                 ? `مبلغ قابل پرداخت: ${workerCalculation.toLocaleString("fa-IR")} تومان`
                 : `مبلغ گزارش: ${contractorCalculation.toLocaleString("fa-IR")} تومان`}
             </Text>
             <View style={{ gap: 10, marginTop: 22 }}>
-              <Pressable onPress={() => setSuccess(false)} style={{ backgroundColor: BRAND.accent, padding: 16, borderRadius: 14 }}>
-                <Text style={{ color: "#fff", textAlign: "center", fontWeight: "900" }}>ثبت گزارش مجدد</Text>
+              <Pressable onPress={resetForNext} style={{ backgroundColor: BRAND.accent, padding: 16, borderRadius: 14 }}>
+                <Text style={{ color: "#fff", textAlign: "center", fontWeight: "900" }}>ثبت گزارش بعدی</Text>
               </Pressable>
               <Pressable onPress={() => router.replace("/dashboard")} style={{ borderWidth: 1, borderColor: BRAND.border, padding: 16, borderRadius: 14 }}>
                 <Text style={{ color: BRAND.text, textAlign: "center", fontWeight: "800" }}>پایان گزارش</Text>
@@ -199,7 +136,7 @@ export default function DailyReport() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: BRAND.bg, padding: 20 }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-        <Text style={{ color: BRAND.muted }}>گزارش روزانه · مرحله {step}</Text>
+        <Text style={{ color: BRAND.muted }}>گزارش روزانه · مرحله {step} از 4</Text>
         <Text style={{ color: BRAND.text, fontSize: 29, fontWeight: "900", marginTop: 4 }}>
           {step === 1 ? "برای کدام پروژه؟" : step === 2 ? "نوع گزارش را انتخاب کن" : kind === "worker" ? "گزارش نیروی روزمزد" : "گزارش پیمانکار"}
         </Text>
@@ -212,7 +149,7 @@ export default function DailyReport() {
                 <Text style={{ color: BRAND.muted, marginTop: 3 }}>{project.project_type}</Text>
               </Pressable>
             ))}
-            {projects.length === 0 && <Text style={{ color: BRAND.muted, marginTop: 20 }}>ابتدا یک پروژه فعال بساز.</Text>}
+            {!projects.length && <Text style={{ color: BRAND.muted, marginTop: 20 }}>ابتدا یک پروژه فعال بساز.</Text>}
           </View>
         )}
 
@@ -234,9 +171,7 @@ export default function DailyReport() {
             {workers.map((item) => (
               <Pressable key={item.id} onPress={() => setWorkerId(item.id)} style={{ backgroundColor: BRAND.surface, borderWidth: 1, borderColor: workerId === item.id ? BRAND.accent : BRAND.border, borderRadius: 16, padding: 16 }}>
                 <Text style={{ color: BRAND.text, fontSize: 17, fontWeight: "800" }}>{item.name}</Text>
-                <Text style={{ color: BRAND.muted, marginTop: 3 }}>
-                  {item.specialty || "بدون تخصص"} · {Number(item.daily_wage || 0).toLocaleString("fa-IR")} تومان
-                </Text>
+                <Text style={{ color: BRAND.muted, marginTop: 3 }}>{item.specialty || "بدون تخصص"} · {Number(item.daily_wage || 0).toLocaleString("fa-IR")} تومان</Text>
               </Pressable>
             ))}
             <Text style={{ color: BRAND.text, marginTop: 8, fontWeight: "800" }}>کارکرد امروز</Text>
@@ -260,11 +195,11 @@ export default function DailyReport() {
             {contractors.map((item) => (
               <Pressable key={item.id} onPress={() => setContractorId(item.id)} style={{ backgroundColor: BRAND.surface, borderWidth: 1, borderColor: contractorId === item.id ? BRAND.accent : BRAND.border, borderRadius: 16, padding: 16 }}>
                 <Text style={{ color: BRAND.text, fontSize: 17, fontWeight: "800" }}>{item.name}</Text>
-                <Text style={{ color: BRAND.muted, marginTop: 3 }}>{item.specialty || "بدون تخصص"} · {item.unit || "واحد"}</Text>
+                <Text style={{ color: BRAND.muted, marginTop: 3 }}>{item.specialty || "بدون تخصص"} · {item.unit || "واحد"} · {Number(item.unit_rate || 0).toLocaleString("fa-IR")} تومان</Text>
               </Pressable>
             ))}
             <TextInput value={quantity} onChangeText={setQuantity} keyboardType="numeric" placeholder="مقدار انجام‌شده" placeholderTextColor="#707986" style={{ backgroundColor: BRAND.surface, color: BRAND.text, padding: 16, borderRadius: 14, borderWidth: 1, borderColor: BRAND.border }} />
-            <TextInput value={rate || String(contractor?.unit_rate || "")} onChangeText={setRate} keyboardType="numeric" placeholder="نرخ واحد" placeholderTextColor="#707986" style={{ backgroundColor: BRAND.surface, color: BRAND.text, padding: 16, borderRadius: 14, borderWidth: 1, borderColor: BRAND.border }} />
+            <TextInput value={rate} onChangeText={setRate} keyboardType="numeric" placeholder={contractor?.unit_rate ? `نرخ واحد: ${Number(contractor.unit_rate).toLocaleString("fa-IR")}` : "نرخ واحد"} placeholderTextColor="#707986" style={{ backgroundColor: BRAND.surface, color: BRAND.text, padding: 16, borderRadius: 14, borderWidth: 1, borderColor: BRAND.border }} />
             <Pressable disabled={!contractorId || !quantity} onPress={() => setStep(4)} style={{ backgroundColor: BRAND.text, padding: 16, borderRadius: 14, opacity: contractorId && quantity ? 1 : 0.4 }}>
               <Text style={{ textAlign: "center", fontWeight: "900", color: BRAND.bg }}>پیش‌نمایش محاسبه</Text>
             </Pressable>
@@ -274,9 +209,9 @@ export default function DailyReport() {
         {step === 4 && (
           <View style={{ marginTop: 24, backgroundColor: BRAND.surface, borderWidth: 1, borderColor: BRAND.border, borderRadius: 20, padding: 22 }}>
             <Text style={{ color: BRAND.muted }}>تأیید نهایی</Text>
+            <Text style={{ color: BRAND.text, fontSize: 20, fontWeight: "900", marginTop: 8 }}>{kind === "worker" ? worker?.name : contractor?.name}</Text>
             {kind === "worker" ? (
               <>
-                <Text style={{ color: BRAND.text, fontSize: 20, fontWeight: "900", marginTop: 8 }}>{worker?.name}</Text>
                 <Text style={{ color: BRAND.muted, marginTop: 5 }}>کارکرد: {attendance === 1 ? "کامل" : attendance === 0.5 ? "نیم‌روز" : "غیبت"}</Text>
                 <Text style={{ color: BRAND.muted }}>اضافه‌کاری: {toNumber(overtimeHours)} ساعت</Text>
                 <Text style={{ color: BRAND.muted }}>مساعده: {toNumber(advance).toLocaleString("fa-IR")} تومان</Text>
@@ -284,7 +219,6 @@ export default function DailyReport() {
               </>
             ) : (
               <>
-                <Text style={{ color: BRAND.text, fontSize: 20, fontWeight: "900", marginTop: 8 }}>{contractor?.name}</Text>
                 <Text style={{ color: BRAND.muted, marginTop: 5 }}>{toNumber(quantity).toLocaleString("fa-IR")} {contractor?.unit || "واحد"}</Text>
                 <Text style={{ color: BRAND.muted }}>نرخ: {(toNumber(rate) || Number(contractor?.unit_rate || 0)).toLocaleString("fa-IR")} تومان</Text>
                 <Text style={{ color: BRAND.text, fontSize: 27, fontWeight: "900", marginTop: 16 }}>{contractorCalculation.toLocaleString("fa-IR")} تومان</Text>
