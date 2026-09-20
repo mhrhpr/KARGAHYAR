@@ -1,0 +1,6 @@
+import * as SQLite from "expo-sqlite";
+let dbPromise:Promise<SQLite.SQLiteDatabase>|null=null;
+async function db(){if(!dbPromise)dbPromise=SQLite.openDatabaseAsync("kargahyar.db");const x=await dbPromise;await x.execAsync("PRAGMA journal_mode = WAL; CREATE TABLE IF NOT EXISTS pending_reports (id TEXT PRIMARY KEY NOT NULL, project_id TEXT, note TEXT NOT NULL, created_at TEXT NOT NULL, synced INTEGER NOT NULL DEFAULT 0);");return x;}
+export async function savePendingReport(input:{projectId:string|null;note:string}){const x=await db();const id="local-"+Date.now()+"-"+Math.random().toString(36).slice(2,8);await x.runAsync("INSERT INTO pending_reports(id,project_id,note,created_at,synced) VALUES(?,?,?,?,0)",id,input.projectId,input.note,new Date().toISOString());return id;}
+export async function markReportSynced(id:string){const x=await db();await x.runAsync("UPDATE pending_reports SET synced=1 WHERE id=?",id);}
+export async function getPendingReports(){const x=await db();return x.getAllAsync<{id:string;project_id:string|null;note:string;created_at:string}>("SELECT id,project_id,note,created_at FROM pending_reports WHERE synced=0 ORDER BY created_at ASC");}
