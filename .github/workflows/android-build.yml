@@ -9,7 +9,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
       - run: npm install -g eas-cli
       - run: cd apps/mobile && npm install
       - run: cd apps/mobile && eas build --platform android --profile preview --non-interactive --json
