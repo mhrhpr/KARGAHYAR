@@ -1,0 +1,67 @@
+name: KARGAHYAR Android Test APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kargahyar-android-test-apk
+  cancel-in-progress: true
+
+jobs:
+  android-test-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm install --workspace apps/mobile --ignore-scripts
+
+      - name: Generate native Android project
+        working-directory: apps/mobile
+        run: npx expo prebuild --platform android --non-interactive --no-install
+
+      - name: Build standalone debug APK
+        working-directory: apps/mobile/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Verify APK
+        run: |
+          test -f apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          cp apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk kargahyar-test.apk
+          ls -lh kargahyar-test.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kargahyar-test-apk
+          path: kargahyar-test.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish test APK Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v1.0.0-test"
+          gh release delete "$TAG" --yes 2>/dev/null || true
+          gh release create "$TAG" kargahyar-test.apk             --title "KARGAHYAR Android Test APK"             --notes "Test APK for direct installation on Android devices."
+
+      - name: Show download URL
+        run: echo "https://github.com/mhrhpr/KARGAHYAR/releases/download/v1.0.0-test/kargahyar-test.apk"
