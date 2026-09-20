@@ -32,6 +32,17 @@ export type ExpenseOperation = {
   amount: number;
 };
 
+export type PaymentOperation = {
+  kind: "payment";
+  projectId: string;
+  partyType: "worker" | "contractor" | "supplier" | "other";
+  partyId: string | null;
+  amount: number;
+  paymentDate: string;
+  method: "cash" | "card" | "transfer" | "other";
+  description: string;
+};
+
 export type MaterialOperation = {
   kind: "material";
   projectId: string;
@@ -47,7 +58,8 @@ export type PendingOperation =
   | WorkerReportOperation
   | ContractorReportOperation
   | ExpenseOperation
-  | MaterialOperation;
+  | MaterialOperation
+  | PaymentOperation;
 
 type PendingRow = {
   id: string;
@@ -167,6 +179,19 @@ async function syncOperation(row: PendingRow) {
       p_category: operation.category,
       p_description: operation.description,
       p_amount: operation.amount,
+      p_operation_id: clientOperationId,
+    });
+  }
+
+  if (operation.kind === "payment") {
+    return supabase.rpc("record_payment", {
+      p_project_id: operation.projectId,
+      p_party_type: operation.partyType,
+      p_party_id: operation.partyId,
+      p_amount: operation.amount,
+      p_payment_date: operation.paymentDate,
+      p_method: operation.method,
+      p_description: operation.description,
       p_operation_id: clientOperationId,
     });
   }
