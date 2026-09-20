@@ -20,7 +20,8 @@
     "expo-constants": "~57.0.19",
     "expo-linking": "~57.0.10",
     "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "~4.26.0"
+    "react-native-screens": "~4.26.0",
+    "react-dom": "19.2.3"
   },
   "devDependencies": {
     "typescript": "~6.0.3"
