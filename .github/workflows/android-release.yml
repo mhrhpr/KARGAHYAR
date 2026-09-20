@@ -26,6 +26,10 @@ jobs:
       - run: npm install --workspace apps/mobile --ignore-scripts
       - run: npx eas-cli@latest --version
 
+      - name: Align Expo SDK dependencies
+        working-directory: apps/mobile
+        run: CI=1 npx expo install --fix
+
       - name: Ensure EAS project is linked
         working-directory: apps/mobile
         env:
