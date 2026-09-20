@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { supabase } from "../lib/supabase";
 import { queueAndSync } from "../lib/offline";
 import { BRAND } from "../lib/brand";
+import { refreshReportReminder } from "../lib/reminders";
 
 type Project = { id: string; name: string; project_type: string };
 type Worker = { id: string; name: string; specialty: string | null; daily_wage: number | null; hourly_wage: number | null; overtime_rate: number | null };
@@ -95,6 +96,7 @@ export default function DailyReport() {
           };
 
       const result = await queueAndSync(operation);
+      await refreshReportReminder();
       setSuccess(result.queued ? "queued" : "synced");
     } catch (error) {
       Alert.alert("ثبت انجام نشد", error instanceof Error ? error.message : "اطلاعات را بررسی کن.");
