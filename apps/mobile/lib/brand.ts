@@ -1,0 +1,1 @@
+export const BRAND={nameFa:"کارگاهیار",nameEn:"KARGAHYAR",tagline:"کارگاهت را مدیریت کن، نه کاغذها را.",bg:"#0B0F14",surface:"#121923",border:"#26303B",text:"#F5F7FA",muted:"#AEB6C2",accent:"#2563EB"};
