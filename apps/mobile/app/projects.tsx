@@ -17,7 +17,7 @@ export default function Projects(){
     :<View style={{gap:12,marginTop:20}}>{projects.map(p=><Pressable key={p.id} onPress={()=>router.push({pathname:"/project",params:{id:p.id}})} style={{backgroundColor:BRAND.surface,borderWidth:1,borderColor:BRAND.border,borderRadius:18,padding:18}}>
       <View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center"}}><Text style={{color:BRAND.text,fontSize:18,fontWeight:"900"}}>{p.name}</Text><Text style={{color:p.status==="active"?"#7DD3A7":BRAND.muted,fontWeight:"800"}}>{p.status==="active"?"فعال":"غیرفعال"}</Text></View>
       <Text style={{color:BRAND.muted,marginTop:4}}>{p.project_type}</Text>
-      <View style={{marginTop:12,height:8,borderRadius:6,backgroundColor:"#202A34",overflow:"hidden"}}><View style={{height:8,width:(Math.max(0,Math.min(100,Number(p.progress)||0)))+"%",backgroundColor:BRAND.accent}}/></View>
+      <View style={{marginTop:12,height:8,borderRadius:6,backgroundColor:"#202A34",overflow:"hidden"}}><View style={{height:8,width: ((Math.max(0,Math.min(100,Number(p.progress)||0)) + "%") as `${number}%` ),backgroundColor:BRAND.accent}}/></View>
       <Text style={{color:BRAND.muted,marginTop:6}}>پیشرفت: {Number(p.progress||0).toLocaleString("fa-IR")}%</Text>
     </Pressable>)}</View>}
   </ScrollView></SafeAreaView>;
