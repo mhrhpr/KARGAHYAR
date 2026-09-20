@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 22
 
-      - run: npm install --ignore-scripts
+      - run: npm install --workspace apps/mobile --ignore-scripts
       - run: npx eas-cli@latest --version
 
       - name: Build Android APK with EAS
