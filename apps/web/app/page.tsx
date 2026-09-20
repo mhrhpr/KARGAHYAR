@@ -81,6 +81,7 @@ export default function Home() {
           <a href="#features">امکانات</a>
           <a href="#workflow">نحوه کار</a>
           <a href="#iran">برای کارگاه ایرانی</a>
+          <a href="/magazine">مجله</a>
           <a href="/download">دانلود</a>
         </nav>
         <a className="header-cta" href="/download">
@@ -227,6 +228,34 @@ export default function Home() {
         </div>
       </section>
 
+      
+
+      <section className="magazine-teaser">
+        <div className="magazine-teaser-head">
+          <div>
+            <div className="section-kicker">05 / KARGAHYAR MAGAZINE</div>
+            <h2>دانش مدیریت پروژه، برای کارگاه واقعی.</h2>
+          </div>
+          <a className="magazine-link" href="/magazine">همه مقاله‌ها ←</a>
+        </div>
+        <div className="magazine-grid">
+          <a className="magazine-card" href="/magazine/مدیریت-پروژه-ساختمانی">
+            <span>PROJECT MANAGEMENT</span>
+            <h3>مدیریت پروژه ساختمانی چیست و از کجا باید شروع کرد؟</h3>
+            <p>یک راهنمای کاربردی برای برنامه‌ریزی، هزینه، نیروی انسانی، پیمانکار و کنترل پیشرفت پروژه.</p>
+          </a>
+          <a className="magazine-card" href="/magazine/گزارش-روزانه-کارگاه">
+            <span>DAILY REPORT</span>
+            <h3>گزارش روزانه کارگاه؛ چه اطلاعاتی واقعاً مهم است؟</h3>
+            <p>چهار گروه داده‌ای که باید هر روز ثبت شوند تا تصمیم‌گیری پروژه بر اساس حدس نباشد.</p>
+          </a>
+          <a className="magazine-card" href="/magazine/کنترل-هزینه-پروژه">
+            <span>COST CONTROL</span>
+            <h3>کنترل هزینه پروژه ساختمانی بدون اکسل‌های پیچیده</h3>
+            <p>هزینه، پرداخت، دستمزد، پیمانکار و مصالح را چطور در یک تصویر قابل‌کنترل ببینیم.</p>
+          </a>
+        </div>
+      </section>
       <section className="download-cta">
         <div>
           <div className="section-kicker light">04 / GET STARTED</div>
