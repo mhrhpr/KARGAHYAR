@@ -27,17 +27,8 @@ jobs:
           java-version: "17"
 
 
-      - name: Install dependencies
-        run: npm install --prefix apps/mobile --workspaces=false --ignore-scripts
-
-      - name: Generate standalone mobile lockfile
-        run: |
-          rm -rf /tmp/kargahyar-mobile-lock
-          mkdir -p /tmp/kargahyar-mobile-lock
-          cp apps/mobile/package.json /tmp/kargahyar-mobile-lock/package.json
-          cd /tmp/kargahyar-mobile-lock
-          npm install --package-lock-only --ignore-scripts
-          cp package-lock.json "$GITHUB_WORKSPACE/apps/mobile/package-lock.json"
+      - name: Install monorepo dependencies and generate root lockfile
+        run: npm install --ignore-scripts
 
       - name: Expo Doctor
         working-directory: apps/mobile
