@@ -97,7 +97,7 @@ export default function DailyReport() {
           };
 
       const result = await queueAndSync(operation);
-      await clearReminderSuppression();
+      await suppressReminderForToday();
       await refreshReportReminder();
       setSuccess(result.queued ? "queued" : "synced");
     } catch (error) {
