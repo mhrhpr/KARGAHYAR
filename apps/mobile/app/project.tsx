@@ -16,7 +16,7 @@ export default function ProjectHome(){
   ]); setWorkers(w.count||0); setContractors(c.count||0);
   const {data:reports}=await supabase.from("daily_reports").select("id").eq("project_id",id);
   const ids=(reports||[]).map(r=>r.id);
-  if(ids.length){const [we,ce]=await Promise.all([supabase.from("worker_entries").select("payable").in("report_id",ids),supabase.from("contractor_entries").select("amount").in("report_id",ids)]); const wc=(we.data||[]).reduce((s,r)=>s+Number(r.payable||0),0); const cc=(ce.data||[]).reduce((s,r)=>s+Number(r.amount||0),0); setCost(wc+cc);}
+  if(ids.length){const [we,ce]=await Promise.all([supabase.from("worker_entries").select("payable,advance").in("report_id",ids),supabase.from("contractor_entries").select("amount").in("report_id",ids)]); const wc=(we.data||[]).reduce((s,r)=>s+Number(r.payable||0)+Number(r.advance||0),0); const cc=(ce.data||[]).reduce((s,r)=>s+Number(r.amount||0),0); setCost(wc+cc);} const [ex,py]=await Promise.all([supabase.from("expenses").select("amount").eq("project_id",id),supabase.from("payments").select("amount").eq("project_id",id)]); setCost((v)=>v+(ex.data||[]).reduce((s,r)=>s+Number(r.amount||0),0)); setPaid((py.data||[]).reduce((s,r)=>s+Number(r.amount||0),0));
   })()},[id]);
   if(!project)return <SafeAreaView style={{flex:1,backgroundColor:BRAND.bg,padding:20}}><Text style={{color:BRAND.text,fontSize:24,fontWeight:"900"}}>در حال بارگذاری...</Text></SafeAreaView>;
   const modules=project.settings?.modules||{};
@@ -30,7 +30,7 @@ export default function ProjectHome(){
       <View style={{flexDirection:"row",gap:10,marginTop:14}}>
         {[["نیرو",workers],["پیمانکار",contractors],["پیشرفت",(project.progress||0)+"%"]].map(([t,v])=><View key={String(t)} style={{flex:1}}><Text style={{color:BRAND.muted,fontSize:12}}>{t}</Text><Text style={{color:BRAND.text,fontSize:20,fontWeight:"900",marginTop:3}}>{v}</Text></View>)}
       </View>
-      <Text style={{color:BRAND.muted,marginTop:16}}>هزینه ثبت‌شده نیروی انسانی و پیمانکار: <Text style={{color:BRAND.text,fontWeight:"900"}}>{cost.toLocaleString("fa-IR")} تومان</Text></Text>
+      <Text style={{color:BRAND.muted,marginTop:16}}>هزینه عملیاتی ثبت‌شده: <Text style={{color:BRAND.text,fontWeight:"900"}}>{cost.toLocaleString("fa-IR")} تومان</Text></Text><Text style={{color:BRAND.muted,marginTop:6}}>پرداخت ثبت‌شده: <Text style={{color:"#7DD3A7",fontWeight:"900"}}>{paid.toLocaleString("fa-IR")} تومان</Text></Text>
     </View>
     <Text style={{color:BRAND.text,fontSize:21,fontWeight:"900",marginTop:26}}>عملیات پروژه</Text>
     <View style={{gap:10,marginTop:12}}>
@@ -39,6 +39,7 @@ export default function ProjectHome(){
       {modules.contractors!==false&&<Pressable onPress={()=>go("/contractors")} style={styles.card}><Text style={styles.title}>🧑‍🔧 پیمانکاران</Text><Text style={styles.sub}>کارکرد و نرخ واحد</Text></Pressable>}
       {modules.materials!==false&&<Pressable onPress={()=>go("/materials")} style={styles.card}><Text style={styles.title}>🧱 مصالح</Text><Text style={styles.sub}>موجودی و نقطه سفارش</Text></Pressable>}
       {modules.expenses!==false&&<Pressable onPress={()=>go("/expenses")} style={styles.card}><Text style={styles.title}>💰 هزینه‌ها</Text><Text style={styles.sub}>خرج‌های جاری پروژه</Text></Pressable>}
+      {modules.payments!==false&&<Pressable onPress={()=>go("/payments")} style={styles.card}><Text style={styles.title}>💳 پرداخت‌ها</Text><Text style={styles.sub}>پرداخت به نیرو، پیمانکار و سایر</Text></Pressable>}
       <Pressable onPress={()=>router.push({pathname:"/dashboard"})} style={styles.card}><Text style={styles.title}>📊 داشبورد کلی</Text><Text style={styles.sub}>برگشت به نمای تمام پروژه‌ها</Text></Pressable>
     </View>
   </ScrollView></SafeAreaView>;
