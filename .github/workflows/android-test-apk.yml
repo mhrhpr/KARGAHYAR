@@ -30,9 +30,10 @@ jobs:
       - name: Install monorepo dependencies and generate root lockfile
         run: npm install --ignore-scripts
 
+
       - name: Expo Doctor
         working-directory: apps/mobile
-        run: npx expo-doctor
+        run: npx expo-doctor --verbose
 
       - name: Generate native Android project
         working-directory: apps/mobile
