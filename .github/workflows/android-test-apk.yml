@@ -1,6 +1,8 @@
 name: KARGAHYAR Android Test APK
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -33,6 +35,10 @@ jobs:
       - name: Install mobile dependencies only
         working-directory: apps/mobile
         run: npm install --workspaces=false --ignore-scripts
+
+      - name: Generate mobile lockfile
+        working-directory: apps/mobile
+        run: npm install --package-lock-only --ignore-scripts
 
       - name: Expo Doctor
         working-directory: apps/mobile
