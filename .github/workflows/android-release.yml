@@ -26,15 +26,9 @@ jobs:
       - run: npm install --prefix apps/mobile --workspaces=false --ignore-scripts
       - run: npx eas-cli@latest --version
 
-      - name: Generate standalone mobile lockfile
-        run: |
-          rm -rf /tmp/kargahyar-mobile-lock
-          mkdir -p /tmp/kargahyar-mobile-lock
-          cp apps/mobile/package.json /tmp/kargahyar-mobile-lock/package.json
-          cd /tmp/kargahyar-mobile-lock
-          npm install --package-lock-only --ignore-scripts
-          cp package-lock.json "$GITHUB_WORKSPACE/apps/mobile/package-lock.json"
-
+      - name: Generate mobile lockfile
+        working-directory: apps/mobile
+        run: npm install --package-lock-only --ignore-scripts
 
       - name: Expo Doctor
         working-directory: apps/mobile
@@ -59,7 +53,7 @@ jobs:
           exit "$status"
 
       - name: Diagnose EAS build failure
-        if: failure()
+        if: steps.eas-build.outcome == 'failure'
         working-directory: apps/mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -84,6 +78,7 @@ jobs:
             console.log('Could not parse eas-build.json:', error.message);
           }
           NODE
+          if [ ! -f ../../eas-build.json ]; then exit 0; fi
           BUILD_ID=$(node -e "const fs=require('fs'); const x=JSON.parse(fs.readFileSync('../../eas-build.json','utf8')); const b=Array.isArray(x)?x[0]:x; process.stdout.write(b?.id||'')")
           if [ -n "$BUILD_ID" ]; then
             npx eas-cli@latest build:view "$BUILD_ID" --json || true
