@@ -35,9 +35,10 @@ jobs:
           npm install --package-lock-only --ignore-scripts
           cp package-lock.json "$GITHUB_WORKSPACE/apps/mobile/package-lock.json"
 
+
       - name: Expo Doctor
         working-directory: apps/mobile
-        run: npx expo-doctor
+        run: npx expo-doctor --verbose
 
       - name: Ensure EAS project is linked
         working-directory: apps/mobile
