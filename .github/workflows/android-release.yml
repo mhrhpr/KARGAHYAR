@@ -1,10 +1,9 @@
 name: KARGAHYAR Android Release
 
 on:
-  push:
-    branches: [main]
-    tags: ["v*.*.*"]
   workflow_dispatch:
+  push:
+    tags: ["v*.*.*"]
 
 concurrency:
   group: kargahyar-android-release
