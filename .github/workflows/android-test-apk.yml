@@ -9,13 +9,17 @@ permissions:
   contents: write
 
 concurrency:
-  group: kargahyar-android-test-apk
+  group: kargahyar-android-test-apk-v3
   cancel-in-progress: true
 
 jobs:
   android-test-apk:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash
+
     steps:
       - uses: actions/checkout@v4
 
@@ -28,10 +32,9 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-
-      - name: Install monorepo dependencies and generate root lockfile
-        run: npm install --ignore-scripts
-
+      - name: Install mobile dependencies only
+        working-directory: apps/mobile
+        run: npm install --workspaces=false --ignore-scripts
 
       - name: Expo Doctor
         working-directory: apps/mobile
@@ -48,7 +51,7 @@ jobs:
           from pathlib import Path
           p = Path("android/app/build.gradle")
           s = p.read_text()
-          if "debuggableVariants = []" not in s:
+          if "debuggableVariants = []" not in s and "react {" in s:
               s = s.replace("react {", "react {\n    debuggableVariants = []", 1)
           p.write_text(s)
           PY
@@ -59,18 +62,9 @@ jobs:
           set -o pipefail
           timeout 15m ./gradlew assembleDebug --no-daemon --no-parallel --max-workers=2 --stacktrace --console=plain 2>&1 | tee ../../gradle-build.log
 
-      - name: Upload Gradle diagnostics
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: kargahyar-gradle-diagnostics
-          path: gradle-build.log
-          if-no-files-found: ignore
-          retention-days: 7
-
       - name: Verify APK
         run: |
-          test -f apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          test -s apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
           cp apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk kargahyar-test.apk
           ls -lh kargahyar-test.apk
 
@@ -92,3 +86,12 @@ jobs:
 
       - name: Show download URL
         run: echo "https://github.com/mhrhpr/KARGAHYAR/releases/download/v1.0.0-test/kargahyar-test.apk"
+
+      - name: Upload Gradle diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kargahyar-gradle-diagnostics
+          path: gradle-build.log
+          if-no-files-found: ignore
+          retention-days: 7
